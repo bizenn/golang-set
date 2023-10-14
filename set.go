@@ -20,54 +20,58 @@ type Set[T comparable] interface {
 
 var EXISTENCE struct{}
 
-type SimpleSet[T comparable] map[T]struct{}
+type SimpleSet[T comparable] struct {
+	m map[T]struct{}
+}
 
-func New[T comparable](vs ...T) SimpleSet[T] {
-	s := make(SimpleSet[T], len(vs))
+func New[T comparable](vs ...T) *SimpleSet[T] {
+	s := &SimpleSet[T]{
+		m: make(map[T]struct{}, len(vs)),
+	}
 	s.Add(vs...)
 	return s
 }
 
 // From https://github.com/golang/go/discussions/47331#discussion-3471930
-func Of[T comparable](vs ...T) SimpleSet[T] {
+func Of[T comparable](vs ...T) *SimpleSet[T] {
 	return New[T](vs...)
 }
 
-func (s SimpleSet[T]) Add(vs ...T) {
+func (s *SimpleSet[T]) Add(vs ...T) {
 	for _, v := range vs {
-		s[v] = EXISTENCE
+		s.m[v] = EXISTENCE
 	}
 }
 
-func (s SimpleSet[T]) AddSet(vs Set[T]) {
+func (s *SimpleSet[T]) AddSet(vs Set[T]) {
 	vs.Do(func(v T) bool {
 		s.Add(v)
 		return true
 	})
 }
 
-func (s SimpleSet[T]) Remove(vs ...T) {
+func (s *SimpleSet[T]) Remove(vs ...T) {
 	for _, v := range vs {
-		delete(s, v)
+		delete(s.m, v)
 	}
 }
 
-func (s SimpleSet[T]) RemoveSet(vs Set[T]) {
+func (s *SimpleSet[T]) RemoveSet(vs Set[T]) {
 	vs.Do(func(v T) bool {
 		s.Remove(v)
 		return true
 	})
 }
 
-func (s SimpleSet[T]) Contains(v T) bool {
+func (s *SimpleSet[T]) Contains(v T) bool {
 	if s != nil {
-		_, ok := s[v]
+		_, ok := s.m[v]
 		return ok
 	}
 	return false
 }
 
-func (s SimpleSet[T]) ContainsAny(vs Set[T]) bool {
+func (s *SimpleSet[T]) ContainsAny(vs Set[T]) bool {
 	ok := false
 	vs.Do(func(v T) bool {
 		if s.Contains(v) {
@@ -79,7 +83,7 @@ func (s SimpleSet[T]) ContainsAny(vs Set[T]) bool {
 	return ok
 }
 
-func (s SimpleSet[T]) ContainsAll(vs Set[T]) bool {
+func (s *SimpleSet[T]) ContainsAll(vs Set[T]) bool {
 	ok := true
 	vs.Do(func(v T) bool {
 		if !s.Contains(v) {
@@ -91,7 +95,7 @@ func (s SimpleSet[T]) ContainsAll(vs Set[T]) bool {
 	return ok
 }
 
-func (s SimpleSet[T]) Values() []T {
+func (s *SimpleSet[T]) Values() []T {
 	if s == nil {
 		return nil
 	}
@@ -103,23 +107,23 @@ func (s SimpleSet[T]) Values() []T {
 	return vs
 }
 
-func (s SimpleSet[T]) Equal(vs Set[T]) bool {
+func (s *SimpleSet[T]) Equal(vs Set[T]) bool {
 	if s.Len() != vs.Len() {
 		return false
 	}
 	return s.ContainsAll(vs)
 }
 
-func (s SimpleSet[T]) Clear() {
+func (s *SimpleSet[T]) Clear() {
 	s.Do(func(v T) bool {
 		s.Remove(v)
 		return true
 	})
 }
 
-func (s SimpleSet[T]) Filter(f func(v T) bool) Set[T] {
+func (s *SimpleSet[T]) Filter(f func(v T) bool) Set[T] {
 	if s == nil {
-		return (SimpleSet[T])(nil)
+		return nil
 	}
 	vs := New[T]()
 	s.Do(func(v T) bool {
@@ -131,17 +135,20 @@ func (s SimpleSet[T]) Filter(f func(v T) bool) Set[T] {
 	return vs
 }
 
-func (s SimpleSet[T]) Len() int {
-	return len(s)
+func (s *SimpleSet[T]) Len() int {
+	if s == nil {
+		return 0
+	}
+	return len(s.m)
 }
 
-func (s SimpleSet[T]) Clone() Set[T] {
+func (s *SimpleSet[T]) Clone() Set[T] {
 	return s.Filter(func(_ T) bool { return true })
 }
 
-func (s SimpleSet[T]) Do(f func(v T) bool) {
+func (s *SimpleSet[T]) Do(f func(v T) bool) {
 	if s != nil && f != nil {
-		for v := range s {
+		for v := range s.m {
 			if !f(v) {
 				break
 			}

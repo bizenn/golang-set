@@ -14,23 +14,27 @@ func TestNewAndOf(t *testing.T) {
 	testsForInt := []test[int]{
 		{
 			args:     []int{},
-			expected: SimpleSet[int]{},
+			expected: &SimpleSet[int]{m: map[int]struct{}{}},
 		},
 		{
 			args: []int{1},
-			expected: SimpleSet[int]{
-				1: EXISTENCE,
+			expected: &SimpleSet[int]{
+				m: map[int]struct{}{
+					1: EXISTENCE,
+				},
 			},
 		},
 		{
 			args: []int{1, 2, 3, 4, 1, 2, 3, 4, 5, 6},
-			expected: SimpleSet[int]{
-				1: EXISTENCE,
-				2: EXISTENCE,
-				3: EXISTENCE,
-				4: EXISTENCE,
-				5: EXISTENCE,
-				6: EXISTENCE,
+			expected: &SimpleSet[int]{
+				m: map[int]struct{}{
+					1: EXISTENCE,
+					2: EXISTENCE,
+					3: EXISTENCE,
+					4: EXISTENCE,
+					5: EXISTENCE,
+					6: EXISTENCE,
+				},
 			},
 		},
 	}
@@ -49,7 +53,7 @@ func TestNewAndOf(t *testing.T) {
 	testsForString := []test[string]{
 		{
 			args:     []string{},
-			expected: SimpleSet[string]{},
+			expected: &SimpleSet[string]{m: map[string]struct{}{}},
 		},
 	}
 
@@ -72,18 +76,18 @@ func TestEqual(t *testing.T) {
 		expected bool
 	}{
 		{
-			src1:     (SimpleSet[string])(nil),
-			src2:     (SimpleSet[string])(nil),
+			src1:     (*SimpleSet[string])(nil),
+			src2:     (*SimpleSet[string])(nil),
 			expected: true,
 		},
 		{
-			src1:     (SimpleSet[string])(nil),
+			src1:     (*SimpleSet[string])(nil),
 			src2:     New[string](),
 			expected: true,
 		},
 		{
 			src1:     New[string](),
-			src2:     (SimpleSet[string])(nil),
+			src2:     (*SimpleSet[string])(nil),
 			expected: true,
 		},
 		{
@@ -156,8 +160,8 @@ func TestModification(t *testing.T) {
 	tests := []struct {
 		addArgs        []string
 		removeArgs     []string
-		addExpected    SimpleSet[string]
-		removeExpected SimpleSet[string]
+		addExpected    Set[string]
+		removeExpected Set[string]
 	}{
 		{
 			addArgs:        []string{},
@@ -269,7 +273,7 @@ func TestValues(t *testing.T) {
 		expected []string
 	}{
 		{
-			src:      (SimpleSet[string])(nil),
+			src:      (*SimpleSet[string])(nil),
 			expected: nil,
 		},
 		{
@@ -305,7 +309,7 @@ func TestLen(t *testing.T) {
 		expected int
 	}{
 		{
-			src:      (SimpleSet[string])(nil),
+			src:      (*SimpleSet[string])(nil),
 			expected: 0,
 		},
 		{
@@ -338,9 +342,9 @@ func TestCloneClear(t *testing.T) {
 		cleared  Set[string]
 	}{
 		{
-			src:      (SimpleSet[string])(nil),
-			expected: (SimpleSet[string])(nil),
-			cleared:  (SimpleSet[string])(nil),
+			src:      (*SimpleSet[string])(nil),
+			expected: (Set[string])(nil),
+			cleared:  (Set[string])(nil),
 		},
 		{
 			src:      New[string](),
@@ -361,9 +365,11 @@ func TestCloneClear(t *testing.T) {
 		if result := test.src.Clone(); !reflect.DeepEqual(result, test.expected) {
 			t.Errorf("Clone() expected %v but got %v", test.expected, result)
 		} else {
-			result.Clear()
-			if !reflect.DeepEqual(result, test.cleared) {
-				t.Errorf("Clear() expected %v but got %v from %v", test.cleared, result, test.src)
+			if result != nil {
+				result.(*SimpleSet[string]).Clear()
+				if !reflect.DeepEqual(result, test.cleared) {
+					t.Errorf("Clear() expected %v but got %v from %v", test.cleared, result, test.src)
+				}
 			}
 		}
 	}
@@ -379,8 +385,8 @@ func TestFilter(t *testing.T) {
 		pred     func(v int) bool
 	}{
 		{
-			src:      (SimpleSet[int])(nil),
-			expected: (SimpleSet[int])(nil),
+			src:      (*SimpleSet[int])(nil),
+			expected: (Set[int])(nil),
 			pred:     isEven,
 		},
 		{
