@@ -1,6 +1,7 @@
 package set
 
 import (
+	"encoding/json"
 	"reflect"
 	"sort"
 	"testing"
@@ -407,6 +408,73 @@ func TestFilter(t *testing.T) {
 	} {
 		if result := test.src.Filter(test.pred); !reflect.DeepEqual(result, test.expected) {
 			t.Errorf("Filter() expected %v but got %v from %v", test.expected, result, test.src)
+		}
+	}
+}
+
+func TestMarshalJSON(t *testing.T) {
+	for _, test := range []struct {
+		src      *SimpleSet[string]
+		expected string
+	}{
+		{
+			src:      New[string](),
+			expected: `[]`,
+		},
+		{
+			src:      New("a"),
+			expected: `["a"]`,
+		},
+		{
+			src:      New("a", "b"),
+			expected: `["a","b"]`,
+		},
+		{
+			src:      New("a", "b", "c"),
+			expected: `["a","b","c"]`,
+		},
+	} {
+		if result, err := test.src.MarshalJSON(); err != nil {
+			t.Errorf("MarshalJSON() unexpected error: %s", err)
+		} else {
+			var vs []string
+			if err := json.Unmarshal(result, &vs); err != nil {
+				t.Errorf("MarshalJSON() result cannot be unmarshal to []string but got error: %s", err)
+			}
+			if result := New(vs...); !reflect.DeepEqual(result, test.src) {
+				t.Errorf("MarshalJSON() result unmarshal expected %v but got %v", result, test.src)
+			}
+		}
+	}
+}
+
+func TestUnmarshalJson(t *testing.T) {
+	for _, test := range []struct {
+		src      string
+		expected Set[string]
+	}{
+		{
+			src:      `[]`,
+			expected: New[string](),
+		},
+		{
+			src:      `["a"]`,
+			expected: New("a"),
+		},
+		{
+			src:      `["a","b"]`,
+			expected: New("a", "b"),
+		},
+		{
+			src:      `["c","b","a"]`,
+			expected: New("a", "b", "c"),
+		},
+	} {
+		var result SimpleSet[string]
+		if err := json.Unmarshal([]byte(test.src), &result); err != nil {
+			t.Errorf("Unmarshal() unexpected error: %s", err)
+		} else if !reflect.DeepEqual(&result, test.expected) {
+			t.Errorf("Unmarshal() expected %v but got %v", test.expected, &result)
 		}
 	}
 }

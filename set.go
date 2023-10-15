@@ -1,5 +1,9 @@
 package set
 
+import (
+	"encoding/json"
+)
+
 type Set[T comparable] interface {
 	// From https://github.com/golang/go/discussions/47331#discussion-3471930
 	Add(vs ...T)
@@ -154,4 +158,17 @@ func (s *SimpleSet[T]) Do(f func(v T) bool) {
 			}
 		}
 	}
+}
+
+func (s SimpleSet[T]) MarshalJSON() (b []byte, err error) {
+	slice := s.Values()
+	return json.Marshal(slice)
+}
+
+func (s *SimpleSet[T]) UnmarshalJSON(b []byte) (err error) {
+	var slice []T
+	if err = json.Unmarshal(b, &slice); err == nil {
+		*s = *New(slice...)
+	}
+	return err
 }
