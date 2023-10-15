@@ -20,6 +20,11 @@ type Set[T comparable] interface {
 	Len() int
 	Clone() Set[T]
 	Do(f func(v T) bool)
+
+	// Not destructive
+	Union(vs Set[T]) Set[T]
+	Intersection(vs Set[T]) Set[T]
+	Difference(vs Set[T]) Set[T]
 }
 
 var EXISTENCE struct{}
@@ -158,6 +163,42 @@ func (s *SimpleSet[T]) Do(f func(v T) bool) {
 			}
 		}
 	}
+}
+
+func (s *SimpleSet[T]) Union(vs Set[T]) Set[T] {
+	result := s.Clone()
+	result.AddSet(vs)
+	return result
+}
+
+func (s *SimpleSet[T]) Intersection(vs Set[T]) Set[T] {
+	result := New[T]()
+	var s1, s2 Set[T]
+	if s.Len() < vs.Len() {
+		s1 = s
+		s2 = vs
+	} else {
+		s1 = vs
+		s2 = s
+	}
+	s1.Do(func(v T) bool {
+		if s2.Contains(v) {
+			result.Add(v)
+		}
+		return true
+	})
+	return result
+}
+
+func (s *SimpleSet[T]) Difference(vs Set[T]) Set[T] {
+	result := New[T]()
+	s.Do(func(v T) bool {
+		if !vs.Contains(v) {
+			result.Add(v)
+		}
+		return true
+	})
+	return result
 }
 
 func (s SimpleSet[T]) MarshalJSON() (b []byte, err error) {

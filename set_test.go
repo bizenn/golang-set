@@ -478,3 +478,150 @@ func TestUnmarshalJson(t *testing.T) {
 		}
 	}
 }
+
+func TestUnion(t *testing.T) {
+	for _, test := range []struct {
+		s1       Set[int]
+		s2       Set[int]
+		expected Set[int]
+	}{
+		{
+			s1:       New[int](),
+			s2:       New[int](),
+			expected: New[int](),
+		},
+		{
+			s1:       New[int](),
+			s2:       New(1),
+			expected: New(1),
+		},
+		{
+			s1:       New(1),
+			s2:       New[int](),
+			expected: New(1),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1),
+			expected: New(1),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1, 2),
+			expected: New(1, 2),
+		},
+		{
+			s1:       New(1, 2),
+			s2:       New(1),
+			expected: New(1, 2),
+		},
+		{
+			s1:       New(1, 2, 3),
+			s2:       New(3, 4, 5),
+			expected: New(1, 2, 3, 4, 5),
+		},
+	} {
+		result := test.s1.Union(test.s2)
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("Union() expected %v but got %v", test.expected, result)
+		}
+	}
+}
+
+func TestIntersection(t *testing.T) {
+	for _, test := range []struct {
+		s1       Set[int]
+		s2       Set[int]
+		expected Set[int]
+	}{
+		{
+			s1:       New[int](),
+			s2:       New[int](),
+			expected: New[int](),
+		},
+		{
+			s1:       New[int](),
+			s2:       New(1),
+			expected: New[int](),
+		},
+		{
+			s1:       New(1),
+			s2:       New[int](),
+			expected: New[int](),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1),
+			expected: New(1),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1, 2),
+			expected: New(1),
+		},
+		{
+			s1:       New(1, 2),
+			s2:       New(1),
+			expected: New(1),
+		},
+		{
+			s1:       New(1, 2, 3),
+			s2:       New(3, 4, 5),
+			expected: New(3),
+		},
+	} {
+		result := test.s1.Intersection(test.s2)
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("Intersection() expected %v but got %v", test.expected, result)
+		}
+	}
+}
+
+func TestDifference(t *testing.T) {
+	for _, test := range []struct {
+		s1       Set[int]
+		s2       Set[int]
+		expected Set[int]
+	}{
+		{
+			s1:       New[int](),
+			s2:       New[int](),
+			expected: New[int](),
+		},
+		{
+			s1:       New[int](),
+			s2:       New(1),
+			expected: New[int](),
+		},
+		{
+			s1:       New(1),
+			s2:       New[int](),
+			expected: New(1),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1),
+			expected: New[int](),
+		},
+		{
+			s1:       New(1),
+			s2:       New(1, 2),
+			expected: New[int](),
+		},
+		{
+			s1:       New(1, 2),
+			s2:       New(1),
+			expected: New(2),
+		},
+		{
+			s1:       New(1, 2, 3),
+			s2:       New(3, 4, 5),
+			expected: New(1, 2),
+		},
+	} {
+		result := test.s1.Difference(test.s2)
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("Difference() expected %v but got %v", test.expected, result)
+		}
+	}
+}
