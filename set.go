@@ -18,6 +18,7 @@ type Set[T comparable] interface {
 	Clear()
 	Filter(keep func(T) bool) Set[T]
 	Len() int
+	IsEmpty() bool
 	Clone() Set[T]
 	Do(f func(v T) bool)
 
@@ -149,6 +150,10 @@ func (s *SimpleSet[T]) Len() int {
 		return 0
 	}
 	return len(s.m)
+}
+
+func (s *SimpleSet[T]) IsEmpty() bool {
+	return s.Len() == 0
 }
 
 func (s *SimpleSet[T]) Clone() Set[T] {
