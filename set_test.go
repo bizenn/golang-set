@@ -336,6 +336,30 @@ func TestLen(t *testing.T) {
 	}
 }
 
+func TestIsEmpty(t *testing.T) {
+	for _, test := range []struct {
+		src      Set[string]
+		expected bool
+	}{
+		{
+			src:      (*SimpleSet[string])(nil),
+			expected: true,
+		},
+		{
+			src:      New[string](),
+			expected: true,
+		},
+		{
+			src:      New("a"),
+			expected: false,
+		},
+	} {
+		if result := test.src.IsEmpty(); result != test.expected {
+			t.Errorf("IsEmpty() expected %v but got %v", test.expected, result)
+		}
+	}
+}
+
 func TestCloneClear(t *testing.T) {
 	for _, test := range []struct {
 		src      Set[string]
